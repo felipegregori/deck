@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#07070B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="robots" content="noindex">
+<title>Deck · Agente GTA6</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
+<style>
+  /* Lançador do Stream Deck. Fica no GitHub Pages (endereço fixo) e descobre o IP do PC no arquivo ip.json,
+     que o servidor da live atualiza sozinho. Escrito em JS "antigo" (ES5/XHR) para Android antigo. */
+  @font-face { font-family: "Anton"; src: url("anton.woff2") format("woff2"); }
+  @font-face { font-family: "Oswald"; src: url("oswald-var.woff2") format("woff2"); font-weight: 200 700; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { min-height: 100%; background: #07070B; color: #fff; font-family: "Oswald", Arial, sans-serif; font-weight: 700; }
+  body { background: #07070B; padding: 28px 16px 40px; }
+  body:before { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 0;
+    background-image: linear-gradient(rgba(61,232,242,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(61,232,242,.06) 1px, transparent 1px);
+    background-size: 32px 32px; }
+  body:after { content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 0;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 1px, transparent 1px 3px); }
+  .caixa { position: relative; z-index: 1; max-width: 420px; margin: 0 auto; text-align: center; }
+  .logo { width: 92px; height: 92px; border-radius: 50%; border: 3px solid #3DE8F2; box-shadow: 0 0 24px rgba(61,232,242,.45); display: block; margin: 0 auto 14px; }
+  h1 { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 40px; line-height: 1; letter-spacing: 1px; text-transform: uppercase; }
+  h1 span { color: #3DE8F2; text-shadow: 0 0 14px rgba(61,232,242,.6); }
+  .sub { color: #8A94A3; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; margin-top: 6px; }
+  .painel { margin-top: 26px; background: rgba(14,20,27,.9); border: 2px solid #3DE8F2; padding: 18px 16px;
+    -webkit-clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+    clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); }
+  .st { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: #8A94A3; min-height: 20px; }
+  .st.ok { color: #7ff5a0; } .st.erro { color: #ff8a9a; }
+  .ip { font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 26px; letter-spacing: 1px; margin-top: 6px; color: #9AF7FA; word-break: break-all; }
+  .quando { font-size: 12px; color: #8A94A3; letter-spacing: 1px; margin-top: 2px; min-height: 16px; }
+  .bt { display: block; width: 100%; margin-top: 16px; padding: 18px 10px; border: 0; cursor: pointer; text-decoration: none; text-align: center;
+    font-family: "Anton", Impact, sans-serif; font-weight: 400; font-size: 30px; letter-spacing: 2px; text-transform: uppercase;
+    background: #3DE8F2; color: #07070B; box-shadow: 0 0 22px rgba(61,232,242,.5);
+    -webkit-clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); }
+  .bt:active { opacity: .8; }
+  .bt[disabled] { background: #24303b; color: #5b6774; box-shadow: none; }
+  .bt.sec { background: transparent; color: #3DE8F2; border: 2px solid #3DE8F2; box-shadow: none; font-size: 18px; padding: 10px; }
+  .auto { margin-top: 14px; font-size: 14px; color: #FF2D95; letter-spacing: 1px; display: none; }
+  .auto a { color: #fff; margin-left: 8px; }
+  .manual { margin-top: 18px; display: none; text-align: left; }
+  .manual label { font-size: 12px; color: #8A94A3; letter-spacing: 2px; text-transform: uppercase; }
+  .manual input { width: 100%; margin-top: 6px; padding: 12px; background: #07070B; border: 2px solid #128A99; color: #fff; font: 700 20px "Oswald", Arial, sans-serif; }
+  .links { margin-top: 18px; font-size: 13px; letter-spacing: 1px; }
+  .links a { color: #8A94A3; margin: 0 8px; }
+  .dica { margin-top: 22px; font-size: 13px; line-height: 1.5; color: #8A94A3; font-weight: 400; text-align: left; }
+  .dica b { color: #fff; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="caixa">
+  <img class="logo" src="icone-192.png" alt="">
+  <h1>Deck do <span>Agente</span></h1>
+  <div class="sub">Central de comando da live</div>
+
+  <div class="painel">
+    <div class="st" id="st">Localizando o PC…</div>
+    <div class="ip" id="ip">—</div>
+    <div class="quando" id="quando"></div>
+    <button class="bt" id="abrir" disabled>Abrir Deck</button>
+    <div class="auto" id="auto">Abrindo em <span id="seg">2</span> s… <a href="#" id="cancelar">cancelar</a></div>
+    <div class="manual" id="manual">
+      <label for="campo">IP do PC (aparece na janela preta do servidor)</label>
+      <input id="campo" type="text" inputmode="decimal" placeholder="192.168.0.10" autocomplete="off">
+      <button class="bt sec" id="usar">Usar este IP</button>
+    </div>
+  </div>
+
+  <div class="links"><a href="#" id="tentar">Procurar de novo</a> <a href="#" id="digitar">Digitar o IP</a></div>
+
+  <p class="dica"><b>Não abriu?</b> Confira se o <b>servidor da live</b> está ligado no PC (o arquivo <b>Ligar Overlays da Live</b>) e se o celular está no <b>mesmo Wi-Fi</b> da casa. O PIN continua sendo pedido no deck.</p>
+</div>
+
+<script>
+(function () {
+  var PORTA_PADRAO = 8766;
+  var $ = function (id) { return document.getElementById(id); };
+  var alvo = null, timer = null;
+
+  // dono e repositório saem do próprio endereço: https://<dono>.github.io/<repositorio>/
+  var dono = location.hostname.split('.')[0];
+  var repo = location.pathname.split('/')[1] || '';
+  var noGithub = /\.github\.io$/i.test(location.hostname);
+  var q = {};
+  location.search.replace(/^\?/, '').split('&').forEach(function (p) { var kv = p.split('='); if (kv[0]) q[kv[0]] = decodeURIComponent(kv[1] || ''); });
+  if (q.dono) dono = q.dono;
+  if (q.repo) repo = q.repo;
+
+  function guardar(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function lerGuardado(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+
+  function ipValido(ip) { return /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.test(ip || ''); }
+
+  function pegar(url, cabecalhos, ok, falha) {
+    var x = new XMLHttpRequest();
+    try { x.open('GET', url, true); } catch (e) { return falha(); }
+    x.timeout = 8000;
+    for (var k in cabecalhos) x.setRequestHeader(k, cabecalhos[k]);
+    x.onload = function () {
+      if (x.status !== 200) return falha();
+      try { ok(JSON.parse(x.responseText)); } catch (e) { falha(); }
+    };
+    x.onerror = x.ontimeout = falha;
+    x.send();
+  }
+
+  function haQuanto(iso) {
+    var t = Date.parse(iso || '');
+    if (!t) return '';
+    var min = Math.round((Date.now() - t) / 60000);
+    if (min < 1) return 'atualizado agora';
+    if (min < 60) return 'atualizado há ' + min + ' min';
+    var h = Math.round(min / 60);
+    if (h < 48) return 'atualizado há ' + h + ' h';
+    return 'atualizado há ' + Math.round(h / 24) + ' dias';
+  }
+
+  function mostrar(info, origem) {
+    alvo = 'http://' + info.ip + ':' + (info.porta || PORTA_PADRAO) + '/';
+    $('ip').innerHTML = info.ip + '<span style="color:#8A94A3">:' + (info.porta || PORTA_PADRAO) + '</span>';
+    $('st').className = 'st ok';
+    $('st').innerHTML = origem === 'memoria' ? 'Último endereço conhecido' : (origem === 'manual' ? 'Endereço digitado' : 'PC localizado');
+    $('quando').innerHTML = origem === 'manual' ? '' : haQuanto(info.atualizado);
+    $('abrir').disabled = false;
+    if (q.auto === '1' && origem !== 'memoria') contagem();
+  }
+
+  function contagem() {
+    var s = 2;
+    $('auto').style.display = 'block';
+    $('seg').innerHTML = s;
+    clearInterval(timer);
+    timer = setInterval(function () {
+      s--;
+      $('seg').innerHTML = s;
+      if (s <= 0) { clearInterval(timer); abrir(); }
+    }, 1000);
+  }
+
+  function abrir() { if (alvo) location.href = alvo; }
+
+  function falhou() {
+    var mem = lerGuardado('deck-ultimo');
+    var info = null;
+    try { info = JSON.parse(mem); } catch (e) {}
+    if (info && ipValido(info.ip)) {
+      mostrar(info, 'memoria');
+      $('quando').innerHTML = 'sem internet agora — usando o último IP salvo';
+      return;
+    }
+    $('st').className = 'st erro';
+    $('st').innerHTML = 'Não achei o endereço do PC';
+    $('ip').innerHTML = '—';
+    $('quando').innerHTML = 'Ligue o servidor no PC ou digite o IP';
+    $('manual').style.display = 'block';
+  }
+
+  function recebeu(info) {
+    if (!info || !ipValido(info.ip)) return false;
+    guardar('deck-ultimo', JSON.stringify(info));
+    mostrar(info, 'github');
+    return true;
+  }
+
+  function procurar() {
+    clearInterval(timer);
+    $('auto').style.display = 'none';
+    $('st').className = 'st';
+    $('st').innerHTML = 'Localizando o PC…';
+    $('abrir').disabled = true;
+    var t = Date.now();
+    // 1º: o ip.json direto do repositório pela API do GitHub (atualiza na hora, sem esperar o Pages)
+    // 2º: o ip.json publicado junto desta página (pode demorar ~1 min para atualizar)
+    function pelaPagina() {
+      pegar('ip.json?t=' + t, {}, function (j) { if (!recebeu(j)) falhou(); }, falhou);
+    }
+    if (noGithub || q.api) {
+      var api = (q.api || 'https://api.github.com') + '/repos/' + encodeURIComponent(dono) + '/' + encodeURIComponent(repo) + '/contents/ip.json?t=' + t;
+      pegar(api, { 'Accept': 'application/vnd.github.raw+json' }, function (j) { if (!recebeu(j)) pelaPagina(); }, pelaPagina);
+    } else {
+      pelaPagina();
+    }
+  }
+
+  $('abrir').onclick = abrir;
+  $('cancelar').onclick = function (e) { e.preventDefault(); clearInterval(timer); $('auto').style.display = 'none'; };
+  $('tentar').onclick = function (e) { e.preventDefault(); procurar(); };
+  $('digitar').onclick = function (e) { e.preventDefault(); $('manual').style.display = 'block'; $('campo').focus(); };
+  $('usar').onclick = function () {
+    var v = ($('campo').value || '').replace(/\s/g, '').replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    var partes = v.split(':');
+    if (!ipValido(partes[0])) { $('st').className = 'st erro'; $('st').innerHTML = 'IP inválido (ex.: 192.168.0.10)'; return; }
+    var info = { ip: partes[0], porta: parseInt(partes[1], 10) || PORTA_PADRAO };
+    guardar('deck-ultimo', JSON.stringify(info));
+    mostrar(info, 'manual');
+  };
+
+  procurar();
+})();
+</script>
+</body>
+</html>
