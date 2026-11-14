@@ -1,7 +1,7 @@
 {
   "name": "Deck do Agente GTA6",
   "short_name": "Deck Agente",
-  "start_url": "./?auto=1",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#07070B",
