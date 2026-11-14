@@ -43,8 +43,6 @@
   .bt:active { opacity: .8; }
   .bt[disabled] { background: #24303b; color: #5b6774; box-shadow: none; }
   .bt.sec { background: transparent; color: #3DE8F2; border: 2px solid #3DE8F2; box-shadow: none; font-size: 18px; padding: 10px; }
-  .auto { margin-top: 14px; font-size: 14px; color: #FF2D95; letter-spacing: 1px; display: none; }
-  .auto a { color: #fff; margin-left: 8px; }
   .manual { margin-top: 18px; display: none; text-align: left; }
   .manual label { font-size: 12px; color: #8A94A3; letter-spacing: 2px; text-transform: uppercase; }
   .manual input { width: 100%; margin-top: 6px; padding: 12px; background: #07070B; border: 2px solid #128A99; color: #fff; font: 700 20px "Oswald", Arial, sans-serif; }
@@ -65,7 +63,6 @@
     <div class="ip" id="ip">—</div>
     <div class="quando" id="quando"></div>
     <button class="bt" id="abrir" disabled>Abrir Deck</button>
-    <div class="auto" id="auto">Abrindo em <span id="seg">2</span> s… <a href="#" id="cancelar">cancelar</a></div>
     <div class="manual" id="manual">
       <label for="campo">IP do PC (aparece na janela preta do servidor)</label>
       <input id="campo" type="text" inputmode="decimal" placeholder="192.168.0.10" autocomplete="off">
@@ -82,7 +79,7 @@
 (function () {
   var PORTA_PADRAO = 8766;
   var $ = function (id) { return document.getElementById(id); };
-  var alvo = null, timer = null;
+  var alvo = null;
 
   // dono e repositório saem do próprio endereço: https://<dono>.github.io/<repositorio>/
   var dono = location.hostname.split('.')[0];
@@ -129,19 +126,6 @@
     $('st').innerHTML = origem === 'memoria' ? 'Último endereço conhecido' : (origem === 'manual' ? 'Endereço digitado' : 'PC localizado');
     $('quando').innerHTML = origem === 'manual' ? '' : haQuanto(info.atualizado);
     $('abrir').disabled = false;
-    if (q.auto === '1' && origem !== 'memoria') contagem();
-  }
-
-  function contagem() {
-    var s = 2;
-    $('auto').style.display = 'block';
-    $('seg').innerHTML = s;
-    clearInterval(timer);
-    timer = setInterval(function () {
-      s--;
-      $('seg').innerHTML = s;
-      if (s <= 0) { clearInterval(timer); abrir(); }
-    }, 1000);
   }
 
   function abrir() { if (alvo) location.href = alvo; }
@@ -170,8 +154,6 @@
   }
 
   function procurar() {
-    clearInterval(timer);
-    $('auto').style.display = 'none';
     $('st').className = 'st';
     $('st').innerHTML = 'Localizando o PC…';
     $('abrir').disabled = true;
@@ -190,7 +172,6 @@
   }
 
   $('abrir').onclick = abrir;
-  $('cancelar').onclick = function (e) { e.preventDefault(); clearInterval(timer); $('auto').style.display = 'none'; };
   $('tentar').onclick = function (e) { e.preventDefault(); procurar(); };
   $('digitar').onclick = function (e) { e.preventDefault(); $('manual').style.display = 'block'; $('campo').focus(); };
   $('usar').onclick = function () {
